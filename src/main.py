@@ -6,7 +6,7 @@ from telegram.ext import (
     Updater, CommandHandler, MessageHandler, Filters,
     CallbackContext, CallbackQueryHandler, ConversationHandler
 )
-import download
+import download, geTranslate
 
 stateSearch, stateCategory = range(2)
 
@@ -17,6 +17,7 @@ def main() -> None:
 
     dispatcher.add_handler(CommandHandler("start", start_handler))
     dispatcher.add_handler(download.handler)
+    dispatcher.add_handler(MessageHandler(filters=Filters.text, callback=geTranslate.translate_handler))
 
     updater.start_polling(timeout=600)
     updater.idle()
@@ -24,7 +25,8 @@ def main() -> None:
 
 def start_handler(update: Update, context: CallbackContext) -> None:
     """start command handler"""
-    update.message.reply_text("""/download movie
+    update.message.reply_text(""" Dev version
+/download movie
 or /start to restart""")
 
 if __name__ == '__main__':
