@@ -4,22 +4,21 @@ import time
 import os
 from telegram import InlineKeyboardButton, Update, InlineKeyboardMarkup
 from telegram.ext import (
-    Updater, CommandHandler, MessageHandler, Filters,
-    CallbackContext, CallbackQueryHandler, ConversationHandler
+    CommandHandler, MessageHandler, Filters,
+    CallbackQueryHandler, ConversationHandler
 )
 from qbittorrentapi import Client
+from utils import authorize
 
-stateSearch, stateCategory, stateStartDownload = range(3)
+stateSearch, stateCategory, stateStartDownload = range(10, 13)
 
-
+@authorize
 def download_handler(update: Update, context: CallbackQueryHandler) -> int:
-    '''Download command entrance, asks for movie name'''
-    if str(update.effective_user.id) != os.getenv("TELEGRAM_USER_ID"):
-        return ConversationHandler.END
-
+    ''' Initiates the search and download process, asks for search query '''
     update.message.reply_text("Movie name")
     return stateSearch
 
+@authorize
 def search_handler(update: Update, context: MessageHandler) -> int:
     '''Search handler, accepts the movie name, searches in torrent client'''
     searchresult = search(update.message.text)
@@ -39,6 +38,7 @@ def search_handler(update: Update, context: MessageHandler) -> int:
 
     return stateCategory
 
+@authorize
 def category_handler(update: Update, context: CallbackQueryHandler) -> int:
     '''offers to choose the category of downloaded file'''
     url = update.callback_query.data
@@ -57,6 +57,7 @@ def category_handler(update: Update, context: CallbackQueryHandler) -> int:
 
     return stateStartDownload
 
+@authorize
 def start_download_handler(update: Update, context: CallbackQueryHandler) -> int:
     '''reads category and starts download'''
     category = update.callback_query.data
@@ -69,7 +70,7 @@ def start_download_handler(update: Update, context: CallbackQueryHandler) -> int
 
 def cancel_handler(update: Update, context: CommandHandler) -> int:
     '''cancel downlad conversartion'''
-    update.effective_message.reply_text("/start")
+    update.effective_message.reply_text("Cancelled")
     return ConversationHandler.END
 
 handler = ConversationHandler(
@@ -84,6 +85,7 @@ handler = ConversationHandler(
             stateStartDownload : [CallbackQueryHandler(start_download_handler, CommandHandler('cancel', cancel_handler))]
         },
         fallbacks=[CommandHandler('cancel', cancel_handler)],
+        allow_reentry=False
 )
 
 def search(query):

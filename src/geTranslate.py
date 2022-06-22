@@ -2,19 +2,45 @@
 import os, requests, uuid
 from typing import List
 from telegram import Update
-from telegram.ext import Updater, MessageHandler
+from telegram.ext import CommandHandler, ConversationHandler, MessageHandler, Filters
 from transliterate import translit
+from utils import authorize
 
-def translate_handler(update: Update, context: MessageHandler) -> int:
-    '''Converts from latin letters to georgian, sends to translation service and returns the translation'''
+stateInput = range(20, 21)
+
+@authorize
+def translate_handler(update: Update, context: CommandHandler) -> int:
+    '''Converts from latin letters to georgian, sends to translation service and returns the translation
+    Restricted to configured list of user ids'''
+    update.message.reply_text("Enter text")
+    return stateInput
+
+@authorize
+def user_input_handler(update: Update, context: MessageHandler) -> int:
+    ''' Gets user input and transliterate and translates it '''
     user_input = update.message.text
-
     georgian = translit(user_input, language_code='ka')
-    
     translations = azure_translate(georgian, 'ka', ["ru", "en"])
-
     for lang in translations:
         update.message.reply_text(translations[lang])
+    return ConversationHandler.END
+
+def cancel_handler(update: Update, context: CommandHandler) -> int:
+    '''cancel conversartion'''
+    update.effective_message.reply_text("Cancelled")
+    return ConversationHandler.END
+
+handler = ConversationHandler(
+    entry_points=[CommandHandler("translateGeorgian", translate_handler)],
+    states={
+        stateInput : [
+            MessageHandler(~Filters.command, user_input_handler),
+            CommandHandler('cancel', cancel_handler)
+        ]
+    },
+    fallbacks=[CommandHandler('cancel', cancel_handler)],
+    allow_reentry=False
+)
 
 def azure_translate(msg: str, src: str, dest: List[str]) -> str:
     '''querries translator service to translate and returns translated messages
