@@ -1,13 +1,8 @@
 '''Home automation bot'''
-from asyncio.log import logger
-from logging import Handler
 import os
-from telegram import InlineKeyboardButton, Update, InlineKeyboardMarkup
-from telegram.ext import (
-    Updater, CommandHandler, MessageHandler, Filters,
-    CallbackContext, CallbackQueryHandler, ConversationHandler
-)
-import download, geTranslate
+from telegram import Update
+from telegram.ext import Updater, CommandHandler, CallbackContext
+import download, geTranslate, utils
 
 stateSearch, stateCategory = range(2)
 
@@ -15,6 +10,8 @@ def main() -> None:
     """Start the bot."""
     updater = Updater(os.getenv('TELEGRAM_TOKEN'), arbitrary_callback_data=True)
     dispatcher = updater.dispatcher
+
+    utils.build_start_menu(None)
 
     dispatcher.add_handler(download.handler)
     dispatcher.add_handler(geTranslate.handler)

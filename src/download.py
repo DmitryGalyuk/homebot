@@ -8,17 +8,18 @@ from telegram.ext import (
     CallbackQueryHandler, ConversationHandler
 )
 from qbittorrentapi import Client
-from utils import authorize
+import utils
 
 stateSearch, stateCategory, stateStartDownload = range(10, 13)
 
-@authorize
+@utils.authorize
 def download_handler(update: Update, context: CallbackQueryHandler) -> int:
     ''' Initiates the search and download process, asks for search query '''
+    utils.build_cancel_menu(update)
     update.message.reply_text("Movie name")
     return stateSearch
 
-@authorize
+@utils.authorize
 def search_handler(update: Update, context: MessageHandler) -> int:
     '''Search handler, accepts the movie name, searches in torrent client'''
     searchresult = search(update.message.text)
@@ -38,7 +39,7 @@ def search_handler(update: Update, context: MessageHandler) -> int:
 
     return stateCategory
 
-@authorize
+@utils.authorize
 def category_handler(update: Update, context: CallbackQueryHandler) -> int:
     '''offers to choose the category of downloaded file'''
     url = update.callback_query.data
@@ -57,19 +58,21 @@ def category_handler(update: Update, context: CallbackQueryHandler) -> int:
 
     return stateStartDownload
 
-@authorize
+@utils.authorize
 def start_download_handler(update: Update, context: CallbackQueryHandler) -> int:
     '''reads category and starts download'''
     category = update.callback_query.data
     update.callback_query.answer()
     url = context.chat_data['url']
     download(url, category)
+    utils.build_start_menu(update)
     update.effective_message.reply_text(text='Torrent added')
 
     return ConversationHandler.END
 
 def cancel_handler(update: Update, context: CommandHandler) -> int:
     '''cancel downlad conversartion'''
+    utils.build_start_menu(update)
     update.effective_message.reply_text("Cancelled")
     return ConversationHandler.END
 
