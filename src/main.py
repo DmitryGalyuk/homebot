@@ -26,9 +26,9 @@ def main() -> None:
 
 def start_handler(update: Update, context: CallbackContext) -> None:
     """start command handler"""
-    update.message.reply_text(""" Dev version
-/download movie
-or /start to restart""")
+    if os.getenv("DEV_ENV")=="true":
+        update.message.reply_text("Development environment")
+    update.message.reply_text("Please choose the command from menu")
 
 
 if __name__ == '__main__':

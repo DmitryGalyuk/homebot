@@ -1,7 +1,6 @@
 ''' various utils for Telegram bot '''
 
 import os
-from turtle import up
 from typing import Callable
 from telegram import Update
 from telegram.ext import Handler, ConversationHandler
