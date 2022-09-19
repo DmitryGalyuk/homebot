@@ -23,19 +23,29 @@ def download_handler(update: Update, context: CallbackQueryHandler) -> int:
 def search_handler(update: Update, context: MessageHandler) -> int:
     '''Search handler, accepts the movie name, searches in torrent client'''
     searchresult = search(update.message.text, 10)
-    output = [
-        [
-            InlineKeyboardButton(
-                text="{seeds} seeds, {size:.2f} GB - {name}".format(
+    
+    buttons = []
+    counter = 0
+    for r in searchresult:
+        counter += 1
+        update.effective_chat.send_message(text="{counter}: {seeds} seeds, {size:.2f} GB - {name}".format(
+            counter=counter,
+            seeds=r.nbSeeders,
+            size=r.fileSize/1024/1024/1024,
+            name=r.fileName)
+        )
+        buttons.append(
+            [InlineKeyboardButton(
+                text="{counter}: {seeds} seeds, {size:.2f} GB - {name}".format(
+                    counter=counter,
                     seeds=r.nbSeeders,
                     size=r.fileSize/1024/1024/1024,
                     name=r.fileName[0:50]),
                 callback_data=r.fileUrl
-            )
-        ]
-        for r in searchresult
-    ]
-    update.message.reply_text(text="choose torrent:", reply_markup=InlineKeyboardMarkup(output))
+            )]
+        )
+
+    update.message.reply_text(text="choose torrent:", reply_markup=InlineKeyboardMarkup(buttons))
 
     return stateCategory
 
