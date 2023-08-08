@@ -4,7 +4,7 @@ import time
 import os
 from telegram import InlineKeyboardButton, Update, InlineKeyboardMarkup
 from telegram.ext import (
-    CommandHandler, MessageHandler, Filters,
+    CommandHandler, MessageHandler, filters,
     CallbackQueryHandler, ConversationHandler
 )
 from qbittorrentapi import Client
@@ -13,14 +13,14 @@ import utils
 stateSearch, stateCategory, stateStartDownload = range(10, 13)
 
 @utils.authorize
-def download_handler(update: Update, context: CallbackQueryHandler) -> int:
+async def download_handler(update: Update, context: CallbackQueryHandler) -> int:
     ''' Initiates the search and download process, asks for search query '''
-    utils.build_cancel_menu(update)
-    update.message.reply_text("Movie name")
+    await utils.build_cancel_menu(update)
+    await update.message.reply_text("Movie name")
     return stateSearch
 
 @utils.authorize
-def search_handler(update: Update, context: MessageHandler) -> int:
+async def search_handler(update: Update, context: MessageHandler) -> int:
     '''Search handler, accepts the movie name, searches in torrent client'''
     searchresult = search(update.message.text, 10)
     
@@ -28,7 +28,7 @@ def search_handler(update: Update, context: MessageHandler) -> int:
     counter = 0
     for r in searchresult:
         counter += 1
-        update.effective_chat.send_message(text="{counter}: {seeds} seeds, {size:.2f} GB - {name}".format(
+        await update.effective_chat.send_message(text="{counter}: {seeds} seeds, {size:.2f} GB - {name}".format(
             counter=counter,
             seeds=r.nbSeeders,
             size=r.fileSize/1024/1024/1024,
@@ -45,23 +45,23 @@ def search_handler(update: Update, context: MessageHandler) -> int:
             )]
         )
 
-    update.message.reply_text(text="choose torrent:", reply_markup=InlineKeyboardMarkup(buttons))
+    await update.message.reply_text(text="choose torrent:", reply_markup=InlineKeyboardMarkup(buttons))
 
     return stateCategory
 
 @utils.authorize
-def category_handler(update: Update, context: CallbackQueryHandler) -> int:
+async def category_handler(update: Update, context: CallbackQueryHandler) -> int:
     '''offers to choose the category of downloaded file'''
     url = update.callback_query.data
     context.chat_data['url'] = url
-    update.callback_query.answer()
+    await update.callback_query.answer()
    
     cats = categories()
     buttons = [
         [ InlineKeyboardButton(text=c, callback_data=c) ]
         for c in cats
     ]
-    update.effective_message.reply_text(
+    await update.effective_message.reply_text(
         text='Choose category:',
         reply_markup=InlineKeyboardMarkup(buttons)
     )
@@ -69,32 +69,32 @@ def category_handler(update: Update, context: CallbackQueryHandler) -> int:
     return stateStartDownload
 
 @utils.authorize
-def start_download_handler(update: Update, context: CallbackQueryHandler) -> int:
+async def start_download_handler(update: Update, context: CallbackQueryHandler) -> int:
     '''reads category and starts download'''
     category = update.callback_query.data
-    update.callback_query.answer()
+    await update.callback_query.answer()
     url = context.chat_data['url']
     download(url, category)
-    utils.build_start_menu(update)
-    update.effective_message.reply_text(text='Torrent added')
+    await utils.build_start_menu(update)
+    await update.effective_message.reply_text(text='Torrent added')
 
     return ConversationHandler.END
 
-def cancel_handler(update: Update, context: CommandHandler) -> int:
+async def cancel_handler(update: Update, context: CommandHandler) -> int:
     '''cancel downlad conversartion'''
-    utils.build_start_menu(update)
-    update.effective_message.reply_text("Cancelled")
+    await utils.build_start_menu(update)
+    await update.effective_message.reply_text("Cancelled")
     return ConversationHandler.END
 
 handler = ConversationHandler(
         entry_points=[CommandHandler("download", download_handler)],
         states={
             stateSearch : [
-                MessageHandler(~Filters.command, search_handler),
+                MessageHandler(~filters.COMMAND, search_handler),
                 CommandHandler('cancel', cancel_handler)
             ],
             stateCategory : [CallbackQueryHandler(category_handler), CommandHandler('cancel', cancel_handler)],
-            stateStartDownload : [CallbackQueryHandler(start_download_handler, CommandHandler('cancel', cancel_handler))]
+            stateStartDownload : [CallbackQueryHandler(start_download_handler), CommandHandler('cancel', cancel_handler)]
         },
         fallbacks=[CommandHandler('cancel', cancel_handler)],
         allow_reentry=False

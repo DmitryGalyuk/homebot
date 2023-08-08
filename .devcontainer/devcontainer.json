@@ -9,11 +9,19 @@
 			// Update 'VARIANT' to pick a Python version: 3, 3.9, 3.8, 3.7, 3.6.
 			// Append -bullseye or -buster to pin to an OS version.
 			// Use -bullseye variants on local on arm64/Apple Silicon.
-			"VARIANT": "3.9-bullseye",
+			"VARIANT": "3.8-bullseye",
 			// Options
 			"NODE_VERSION": "lts/*"
 		}
 	},
+
+	"mounts": [
+		"type=bind,readonly,source=/etc/localtime,target=/etc/localtime",
+		"source=/var/run/dbus,target=/var/run/dbus,type=bind,consistency=cached",
+		// "source=/usr/bin/nmcli,target=/usr/bin/nmcli,type=bind,consistency=cached",
+		// "source=/usr/lib/x86_64-linux-gnu/libnm.so.0,target=/usr/lib/libnm.so.0,type=bind,consistency=cached",
+		// "source=/usr/lib/x86_64-linux-gnu/libc.so.6,target=/lib/libc.so.6,type=bind,consistency=cached"
+	],
 
 	// Set *default* container specific settings.json values on container create.
 	"settings": { 
@@ -61,11 +69,14 @@
 
 	// Use 'postCreateCommand' to run commands after the container is created.
 	"postCreateCommand": "pip3 install -r requirements.txt",
+	// "postCreateCommand": "pip3 install -r requirements.txt && sudo apt-get update --allow-unauthenticated && sudo apt-get install --allow-unauthenticated --allow-insecure-repositories -y network-manager",
 
 	// Comment out to connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
 	"remoteUser": "vscode",
 
 	"runArgs": [
-		"--network=homenetwork",
+		"--network=host",
+		// "--network=homenetwork",
+		"--privileged"
 	]
 }

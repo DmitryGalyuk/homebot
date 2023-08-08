@@ -1,4 +1,4 @@
-FROM python:3.8-slim AS bot
+FROM python:3-slim AS bot
 
 ENV PYTHONFAULTHANDLER=1
 ENV PYTHONUNBUFFERED=1
@@ -9,7 +9,7 @@ ENV PIP_DISABLE_PIP_VERSION_CHECK=on
 ENV PIP_DEFAULT_TIMEOUT=100
 
 RUN apt-get update
-RUN apt-get install -y python3 python3-pip python-dev build-essential python3-venv
+RUN apt-get install -y python3 python3-pip python-dev build-essential python3-venv network-manager
 
 ARG t
 

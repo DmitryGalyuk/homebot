@@ -1,4 +1,5 @@
 resources*.json
+arbitrarycallbackdatabot
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

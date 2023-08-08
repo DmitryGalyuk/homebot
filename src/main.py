@@ -1,31 +1,44 @@
 '''Home automation bot'''
+import asyncio
 import os
-from telegram import Update
-from telegram.ext import Updater, CommandHandler, CallbackContext
-import download, geTranslate, utils
+from telegram import Update, Bot
+from telegram.ext import CommandHandler, CallbackContext, Application, ContextTypes, ApplicationBuilder, PicklePersistence
+import download
+import geTranslate
+import utils
+import network
 
 stateSearch, stateCategory = range(2)
 
-def main() -> None:
+def main():
     """Start the bot."""
-    updater = Updater(os.getenv('TELEGRAM_TOKEN'), arbitrary_callback_data=True)
-    dispatcher = updater.dispatcher
+    persistence = PicklePersistence(filepath="arbitrarycallbackdatabot")
+    application = (
+        Application.builder()
+        .token(os.getenv('TELEGRAM_TOKEN'))
+        .persistence(persistence)
+        .arbitrary_callback_data(True)
+        .build()
+    )
+    
 
-    utils.build_start_menu(None)
+    application.add_handler(download.handler)
+    application.add_handler(geTranslate.handler)
+    application.add_handler(CommandHandler("start", start_handler))
+    # application.add_handler(CommandHandler("networkrestart", network.networkrestart_handler))
+    application.add_handler(CommandHandler("vpnup", network.vpnup_handler))
+    application.add_handler(CommandHandler("vpndown", network.vpndown_handler))
 
-    dispatcher.add_handler(download.handler)
-    dispatcher.add_handler(geTranslate.handler)
-    dispatcher.add_handler(CommandHandler("start", start_handler))
+    application.run_polling(timeout=600)
+    # application.shutdown()
+    print("aa")
 
-    updater.start_polling(timeout=600)
-    updater.idle()
-
-
-def start_handler(update: Update, context: CallbackContext) -> None:
+async def start_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """start command handler"""
     if os.getenv("DEV_ENV")=="true":
-        update.message.reply_text("Development environment")
-    update.message.reply_text("Please choose the command from menu")
+        await update.message.reply_text(text="Dev environment")
+    await utils.build_start_menu(update)
+    await update.message.reply_text("Please choose the command from menu")    
 
 
 if __name__ == '__main__':

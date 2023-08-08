@@ -2,42 +2,42 @@
 import os, requests, uuid
 from typing import List
 from telegram import Update
-from telegram.ext import CommandHandler, ConversationHandler, MessageHandler, Filters
+from telegram.ext import CommandHandler, ConversationHandler, MessageHandler, filters
 from transliterate import translit
 import utils
 
 stateInput = range(20, 21)
 
 @utils.authorize
-def translate_handler(update: Update, context: CommandHandler) -> int:
+async def translate_handler(update: Update, context: CommandHandler) -> int:
     '''Converts from latin letters to georgian, sends to translation service and returns the translation
     Restricted to configured list of user ids'''
     utils.build_cancel_menu(update)
-    update.message.reply_text("Enter text")
+    await update.message.reply_text("Enter text")
     return stateInput
 
 @utils.authorize
-def user_input_handler(update: Update, context: MessageHandler) -> int:
+async def user_input_handler(update: Update, context: MessageHandler) -> int:
     ''' Gets user input and transliterate and translates it '''
     user_input = update.message.text
     georgian = translit(user_input, language_code='ka')
     translations = azure_translate(georgian, 'ka', ["ru", "en"])
     utils.build_start_menu(update)
     for lang in translations:
-        update.message.reply_text(translations[lang])
+        await update.message.reply_text(translations[lang])
     return ConversationHandler.END
 
-def cancel_handler(update: Update, context: CommandHandler) -> int:
+async def cancel_handler(update: Update, context: CommandHandler) -> int:
     '''cancel conversartion'''
     utils.build_start_menu(update)
-    update.effective_message.reply_text("Cancelled")
+    await update.effective_message.reply_text("Cancelled")
     return ConversationHandler.END
 
 handler = ConversationHandler(
     entry_points=[CommandHandler("translatgeorgian", translate_handler)],
     states={
         stateInput : [
-            MessageHandler(~Filters.command, user_input_handler),
+            MessageHandler(~filters.COMMAND, user_input_handler),
             CommandHandler('cancel', cancel_handler)
         ]
     },
