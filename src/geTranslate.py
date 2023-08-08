@@ -12,7 +12,7 @@ stateInput = range(20, 21)
 async def translate_handler(update: Update, context: CommandHandler) -> int:
     '''Converts from latin letters to georgian, sends to translation service and returns the translation
     Restricted to configured list of user ids'''
-    utils.build_cancel_menu(update)
+    await utils.build_cancel_menu(update)
     await update.message.reply_text("Enter text")
     return stateInput
 
@@ -22,14 +22,14 @@ async def user_input_handler(update: Update, context: MessageHandler) -> int:
     user_input = update.message.text
     georgian = translit(user_input, language_code='ka')
     translations = azure_translate(georgian, 'ka', ["ru", "en"])
-    utils.build_start_menu(update)
+    await utils.build_start_menu(update)
     for lang in translations:
         await update.message.reply_text(translations[lang])
     return ConversationHandler.END
 
 async def cancel_handler(update: Update, context: CommandHandler) -> int:
     '''cancel conversartion'''
-    utils.build_start_menu(update)
+    await utils.build_start_menu(update)
     await update.effective_message.reply_text("Cancelled")
     return ConversationHandler.END
 
