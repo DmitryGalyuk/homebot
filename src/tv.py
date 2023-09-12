@@ -8,6 +8,7 @@ http://192.168.100.80:1925/5
 '''
 
 from asyncio import sleep
+import os
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, Update, ReplyKeyboardRemove
 from telegram.ext import ContextTypes, ConversationHandler, CommandHandler, CallbackQueryHandler, MessageHandler, filters
 import requests
@@ -15,7 +16,9 @@ from wakeonlan import send_magic_packet
 import utils
 
 TV_STATES = range (31)
-TV_ENDPOINT = "http://192.168.100.3:1925/5"
+TV_ENDPOINT = os.environ["TV_ENDPOINT"]
+TV_MAC = os.environ["TV_MAC"]
+
 button_label = {
     'turn_off': "🟢 Выключить",
     'turn_on': "🔴 Включить",
@@ -102,7 +105,7 @@ async def turn_on(try_wake_on_lan=True):
     
 async def wake_on_lan():
     ''' send Wake On LAN package to TV '''
-    send_magic_packet('ff.ff.ff.ff.ff.ff')
+    send_magic_packet(TV_MAC)
     await sleep(2)
 
 
