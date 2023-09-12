@@ -5,6 +5,7 @@ from telegram import Update, Bot
 from telegram.ext import CommandHandler, CallbackContext, Application, ContextTypes, ApplicationBuilder, PicklePersistence
 import download
 import geTranslate
+import tv
 import utils
 import network
 
@@ -28,6 +29,7 @@ def main():
     # application.add_handler(CommandHandler("networkrestart", network.networkrestart_handler))
     application.add_handler(CommandHandler("vpnup", network.vpnup_handler))
     application.add_handler(CommandHandler("vpndown", network.vpndown_handler))
+    application.add_handler(tv.handler)
 
     application.run_polling(timeout=600)
     # application.shutdown()

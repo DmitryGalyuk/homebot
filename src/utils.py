@@ -25,7 +25,8 @@ async def build_start_menu(update: Update):
         BotCommand('translatgeorgian', 'Transliterate and translate Georgian text'),
         # BotCommand('networkrestart', 'Restart the network connection'),
         BotCommand('vpnup', 'Start VPN'),
-        BotCommand('vpndown', 'Stop VPN')
+        BotCommand('vpndown', 'Stop VPN'),
+        BotCommand('tv', 'TV Remote')
     ]
     await _set_menu(commands, update)
     

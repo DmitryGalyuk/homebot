@@ -1,3 +1,4 @@
 python-telegram-bot[callback-data]
 qbittorrent-api
 transliterate
+wakeonlan
